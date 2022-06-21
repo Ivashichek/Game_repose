@@ -1,0 +1,134 @@
+import pygame
+
+pygame.init()
+from random import *
+
+win_width = 800
+win_height = 800
+tile = 50
+FPS = 60
+win = pygame.display.set_mode((win_width, win_height))
+pygame.display.set_caption('Tanks1941')
+
+maintank = pygame.transform.scale(pygame.image.load('tankukr.png'), (50, 50))
+maintank_right = pygame.transform.rotate(maintank, -90)
+maintank_left = pygame.transform.rotate(maintank, 90)
+maintank_down = pygame.transform.rotate(maintank, 180)
+bulletimg = pygame.transform.scale(pygame.image.load('bullet.png'), (15,20))
+
+
+FPS = 60
+clock = pygame.time.Clock()
+
+
+speed = 1
+orange = (225, 80, 15)
+gray = (178,178,178)
+black = (0,0,0)
+
+class Tank:
+    def __init__(self,image,x,y,health,damage)
+        self.image = image
+        self.x = x
+        self.y = y
+        self.health = health
+        self.damage = damage
+    
+    def update(self):
+        selfX, selfY = self.rect.topleft
+        keyPressed = pygame.key.get_pressed()
+        if keyPressed[pygame.K_SPACE]:
+            Bullet(self.rect.centerx, self.rect.x, self.rect.y ,dx, dy, 5)
+        if keyPressed[pygame.K_d] and self.rect.x < win_width - 50:
+            self.rect.x += self.speed
+            self.image = maintank_right
+        if keyPressed[pygame.K_a] and self.rect.x > 0:
+            self.rect.x -= self.speed
+            self.image = maintank_left
+        if keyPressed[pygame.K_s] and self.rect.y < win_height - 50:
+            self.rect.y += self.speed
+            self.image = maintank_down
+        if keyPressed[pygame.K_w] and self.rect.y > 0:
+            self.rect.y -= self.speed
+            self.image = maintank
+        for obj in objects:
+            if self.rect.colliderect(obj.rect):
+                self.rect.topleft = selfX, selfY
+    def fire(self):
+        bullet = Bullet(bulletimg, self.rect.x, self.rect.y, dx, dy, 5)
+        bullets.add(bullet)
+
+
+class Square(pygame.sprite.Sprite):
+    def __init__(self, width, height, color1, color2, color3, health, y, x):
+        super().__init__()
+        self.color1 = color1
+        self.color2 = color2
+        self.color3 = color3
+        self.width = width
+        self.height = height
+        self.image = pygame.Surface((width, height))
+        self.image.fill((color1, color2, color3))
+        self.rect = self.image.get_rect()
+        self.rect.y = y
+        self.rect.x = x
+        self.health = health
+    def refresh(self):
+        win.blit(self.image, (self.rect.x, self.rect.y))
+class Block:
+    def __init__(self, px, py, size):
+        objects.append(self)
+        self.type = 'block'
+        self.rect = pygame.Rect(px, py, size, size)
+        self.hp = 1
+    def update(self):
+        pass
+    def draw(self):
+        pygame.draw.rect(win, orange, self.rect)
+        pygame.draw.rect(win, gray, self.rect, 2)
+
+maintank_create = Tank(maintank, 25, 25, speed, 15, 5)
+
+class Bullet():
+    def __init__(self, tank, x, y, dx, dy, damage):
+        bullets.append(self)
+        self.x, self.y = x, y
+        self.dx, self.dy = dx,dy
+        self.damage = damage
+        self.tank = tank
+    def update():
+        self.x += self.dx
+        self.y += self.dy
+    def draw():
+        pygame.draw.circle(win, bulletimg, (self.x, self.y), 2)
+
+
+bullets = []
+objects = []
+Cube = Square(80, 80, 0, 0, 0, 15, randint(0, 500), randint(0, 500))
+for _ in range(50):
+    while True:
+        x = randint(0, win_width // tile - 1) * tile
+        y = randint(0, win_height // tile - 1) * tile
+        rect = pygame.Rect(x, y, tile, tile)
+        fined = False
+        for obj in objects:
+            if rect.colliderect(obj.rect): fined = True
+        if not fined:
+            break
+    Block(x, y, tile)
+
+game = True
+while game:
+        win.fill(black)
+        for obj in objects:
+            obj.update()
+        for obj in objects:
+            obj.draw()
+        maintank_create.reset()
+        maintank_create.update()
+        clock.tick(FPS)
+        pygame.display.update()
+        for e in pygame.event.get():
+            if e.type == pygame.QUIT:
+                game = False
