@@ -79,17 +79,17 @@ class Player1(GameSprite):
 
 a = randint(0, 10)
 class Enemy(GameSprite):
-    def shot(self):
+    def shot(self, ):
         if a == 4:
             self.direction = 'right'
             self.image = Enemy_right
             p = Bullet(self.rect.x+15, self.rect.y+20, 3, 1, 5, 0)
-            print('bullet from bot has been arrived', bullets)
+            #print('bullet from bot has been arrived', bullets)
         if a == 7:
             self.direction = 'left'
             self.image = Enemy_left
             p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, -5, 0)
-            print('bullet from bot has been arrived', bullets)
+            #print('bullet from bot has been arrived', bullets)
 
 
 
@@ -149,20 +149,27 @@ class Bullet():
     def draw(self):
         pygame.draw.circle(win, gray, (self.rect.x, self.rect.y), 2)
     
-    def collide_list(self,objects):
+    def collide_list(self,objects, enemies):
         for obj in objects:
             if self.rect.colliderect(obj.rect):
                 obj.hp -= self.damage
                 bullets.remove(self)
                 if obj.hp <= 0:
                     objects.remove(obj)
-            
+            if self.rect.colliderect(Enemy_create.rect):
+                Enemy_create.hp -= self.damage
+                bullets.remove(self)
+                if Enemy_create.hp <= 0:
+                    enemies.remove(Enemy_create)
 
 
 Enemy_create = Enemy(maintank, 600, 600, 'up', speed, 10, damage)
+Enemy_create2 = Enemy(maintank, 600, 600, 'up', speed, 10, damage)
+Enemy_create3 = Enemy(maintank, 600, 600, 'up', speed, 10, damage)
 maintank_create = Player1(maintank, 10, 0, 'up', speed, 10, damage)
 objects = []
 bullets = []
+enemies = [Enemy_create, Enemy_create2, Enemy_create3]
 for _ in range(50):
     while True:
         x = randint(0, win_width // tile - 1) * tile
@@ -186,10 +193,10 @@ while game:
     for bullet in bullets:
         bullet.update()
         bullet.draw()
-        bullet.collide_list(objects)
+        bullet.collide_list(objects, enemies)
     Enemy_create.reset()
-    Enemy_create.update()
     Enemy_create.shot()
+    
     a = randint(0, 200)
 
     maintank_create.reset()
