@@ -369,7 +369,7 @@ while game:
             maintank_create.rect.x = 0
             maintank_create.rect.y = 0
         elif maintank_create.level == 2:
-            win.blit(win_game, (0, 0))
+            win.blit(win_image, (0, 0))
             pygame.display.update()
             pygame.time.delay(4000)
     maintank_create.reset()
