@@ -2,6 +2,7 @@ import pygame
 pygame.init()
 import os
 from random import *
+import pygame_menu
 
 win_width = 800
 win_height = 800
@@ -11,6 +12,8 @@ win = pygame.display.set_mode((win_width, win_height))
 pygame.display.set_caption('Tanks1941')
 bulletimg = pygame.transform.scale(pygame.image.load('img2.png'), (50, 50))
 maintank = pygame.transform.scale(pygame.image.load('img2.png'), (50, 50))
+gameover = pygame.transform.scale(pygame.image.load('Gameover.png'), (800, 800))
+win_game = pygame.transform.scale(pygame.image.load('win.png'), (800, 800))
 maintank_right = pygame.transform.rotate(maintank, -90)
 maintank_left = pygame.transform.rotate(maintank, 90)
 maintank_down = pygame.transform.rotate(maintank, 180)
@@ -19,11 +22,11 @@ Enemy_right = pygame.transform.rotate(Enemy_main, -90)
 Enemy_left = pygame.transform.rotate(Enemy_main, 90)
 Enemy_up = pygame.transform.rotate(Enemy_main, 0)
 Enemy_down = pygame.transform.rotate(Enemy_main, 180)
-
+start_label = pygame.font.SysFont('Arial', 15).render('Для продолжения нажмите любую клавишу', True, (0, 0, 0))
 clock = pygame.time.Clock()
-
+mainmenu = pygame.transform.scale(pygame.image.load('mainmenu.jpg'), (win_width, win_height))
 damage = 5
-speed = 5
+speed = 1
 orange = (225, 80, 15)
 gray = (178, 178, 178)
 black = (0, 0, 0)
@@ -246,6 +249,7 @@ class Bullet():
 
 
 maintank_create = Player1(maintank, 10, 0, 'up', speed, 10, damage)
+maintank_create.level = 1
 objects = []
 bullets = []
 enemies = []
@@ -283,27 +287,27 @@ world_data2 = [
     [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0],
     [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
-    [0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0],
-    [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 2, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 2, 0],
+    [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0],
 ]
-x = 0
-y = 0
-
-for i in world_data:
-    for j in i:
-        if j == 1:
-            Block(x, y, tile, 1)
-        if j == 2:
-            Enemy_create = Enemy(maintank, x, y, 'up', speed, 10, damage)
-            enemies.append(Enemy_create)
-        # elif j == 2:
-        #     s = Sprite(x, y, 50, 50, ship_img)
-        #     ships.append(s)
-        x += 50
-
-    y += 50
+def create_level(world_data, hp_block, hp_enemy, damage_enemy):
+    bullets = []
+    objects = []
     x = 0
+    y = 0
+    for i in world_data:
+        for j in i:
+            if j == 1:
+                Block(x, y, tile, hp_block)
+            if j == 2:
+                Enemy_create = Enemy(maintank, x, y, 'up', speed, hp_enemy, damage_enemy)
+                enemies.append(Enemy_create)
+            x += 50
+        y += 50
+        x = 0
+
+
 tanks = [maintank_create]
 
 # for _ in range(50):
@@ -323,6 +327,26 @@ tanks = [maintank_create]
 #             break
 #     Block(x, y, tile, 1)
 
+path2 = os.path.join(os.getcwd(), "sounds")
+back_music = os.path.join(path2, "Mixed-feeling.ogg")
+pygame.mixer.music.load(back_music)
+pygame.mixer.music.play(-1)
+
+menu = True
+while menu:
+    win.blit(mainmenu, (0,0))
+    win.blit(start_label, (275, 50))
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
+            menu = False
+            game = False
+        if e.type == pygame.KEYDOWN:
+            menu = False
+            game = True
+    clock.tick(FPS)
+    pygame.display.update()
+
+create_level(world_data, 3, 5, 1)
 game = True
 while game:
     win.fill(black)
@@ -338,6 +362,16 @@ while game:
         enemy.reset()
         # enemy.update()
         enemy.move()
+    if len(enemies) == 0:
+        if maintank_create.level == 1:
+            maintank_create.level = 2
+            create_level(world_data2, 5, 6, 1)
+            maintank_create.rect.x = 0
+            maintank_create.rect.y = 0
+        elif maintank_create.level == 2:
+            win.blit(win_game, (0, 0))
+            pygame.display.update()
+            pygame.time.delay(4000)
     maintank_create.reset()
     maintank_create.update()
     if maintank_create.hp <=0:
