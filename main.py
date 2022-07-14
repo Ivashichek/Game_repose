@@ -10,7 +10,7 @@ tile = 50
 FPS: int = 60
 win = pygame.display.set_mode((win_width, win_height))
 pygame.display.set_caption('Tanks1941')
-bulletimg = pygame.transform.scale(pygame.image.load('enemy_tank_image.png'), (50, 50))
+bulletimg = pygame.transform.scale(pygame.image.load('enemy_image.png'), (50, 50))
 maintank = pygame.transform.scale(pygame.image.load('tank_image.png'), (50, 50))
 gameover = pygame.transform.scale(pygame.image.load('gameover_image.png'), (800, 800))
 win_game = pygame.transform.scale(pygame.image.load('win_image.png'), (800, 800))
