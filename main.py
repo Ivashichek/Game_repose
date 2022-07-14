@@ -1,5 +1,6 @@
 import pygame
 pygame.init()
+import os
 from random import *
 
 win_width = 800
@@ -29,7 +30,7 @@ black = (0, 0, 0)
 
 
 class GameSprite(pygame.sprite.Sprite):
-    def __init__(self, player_image, x, y, direction, player_speed, health, damage):
+    def __init__(self, player_image, x, y, direction, player_speed, hp, damage):
         super().__init__()
         self.image = player_image
         self.rect = self.image.get_rect()
@@ -37,7 +38,7 @@ class GameSprite(pygame.sprite.Sprite):
         self.rect.y = y
         self.speed = player_speed
         self.direction = direction
-        self.health = health
+        self.hp = hp
         self.damage = damage
 
     def reset(self):
@@ -70,18 +71,18 @@ class Player1(GameSprite):
 
     def shot(self):
         if self.direction == 'right':
-            p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, 5, 0)
+            p = Bullet(self.rect.x + 45, self.rect.y + 20, 4, 1, 5, 0)
         elif self.direction == 'left':
-            p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, -5, 0)
+            p = Bullet(self.rect.x + -5, self.rect.y + 25, 4, 1, -5, 0)
         elif self.direction == 'up':
-            p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, 0, -5)
+            p = Bullet(self.rect.x + 22, self.rect.y + 0, 4, 1, 0, -5)
         else:
-            p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, 0, 5)
+            p = Bullet(self.rect.x + 25, self.rect.y + 45, 4, 1, 0, 5)
 
 
 class Enemy(GameSprite):
-    def __init__(self, player_image, x, y, direction, player_speed, health, damage):
-        super().__init__(player_image, x, y, direction, player_speed, health, damage)
+    def __init__(self, player_image, x, y, direction, player_speed, hp, damage):
+        super().__init__(player_image, x, y, direction, player_speed, hp, damage)
         self.speedX = 0
         self.speedY = 0
         self.set_direction()
@@ -111,22 +112,45 @@ class Enemy(GameSprite):
     def move(self):
         self.rect.x += self.speedX
         self.rect.y += self.speedY
-        # selfX, selfY = self.rect.topleft
+        #selfX, selfY = self.rect.topleft
         for obj in objects:
             if self.rect.colliderect(obj.rect):
-                # self.rect.topleft = selfX, selfY
                 if self.direction == 'up':
                     self.rect.top = obj.rect.bottom
-                    p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, 0, -5)
                 if self.direction == 'down':
                     self.rect.bottom = obj.rect.top
-                    p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, 0, 5)
                 if self.direction == 'right':
                     self.rect.right = obj.rect.left
-                    p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, 5, 0)
                 if self.direction == 'left':
                     self.rect.left = obj.rect.right
-                    p = Bullet(self.rect.x + 15, self.rect.y + 20, 3, 1, -5, 0)
+                self.shot()
+                self.set_direction()
+            if self.rect.colliderect(maintank_create.rect):
+                if self.direction == 'up':
+                    self.rect.top = obj.rect.bottom
+                    maintank_create.hp -= 2
+                    maintank_create.rect.x = 0
+                    maintank_create.rect.y = 0
+                    print(maintank_create.hp)
+                if self.direction == 'down':
+                    self.rect.bottom = obj.rect.top
+                    maintank_create.hp -= 2
+                    maintank_create.rect.x = 0
+                    maintank_create.rect.y = 0
+                    print(maintank_create.hp)
+                if self.direction == 'right':
+                    self.rect.right = obj.rect.left
+                    maintank_create.hp -= 2
+                    maintank_create.rect.x = 0
+                    maintank_create.rect.y = 0
+                    print(maintank_create.hp)
+                if self.direction == 'left':
+                    self.rect.left = obj.rect.right
+                    maintank_create.hp -= 2
+                    maintank_create.rect.x = 0
+                    maintank_create.rect.y = 0
+                    print(maintank_create.hp)
+                self.shot()
                 self.set_direction()
                 break
         if self.rect.x >= win_width - self.rect.width:
@@ -142,6 +166,15 @@ class Enemy(GameSprite):
             self.rect.top = 0
             # self.rect.topleft = selfX, selfY
             self.set_direction()
+    def shot(self):
+        if self.direction == 'up':
+            p = Bullet(self.rect.x + 50, self.rect.y + 50, 3, 1, 0, -5)
+        if self.direction == 'down':
+            p = Bullet(self.rect.x + 50, self.rect.y + 50, 3, 1, 0, 5)
+        if self.direction == 'right':
+            p = Bullet(self.rect.x + 50, self.rect.y + 50, 3, 1, 5, 0)
+        if self.direction == 'left':
+            p = Bullet(self.rect.x + 50, self.rect.y + 50, 3, 1, -5, 0)
 
 class Square(pygame.sprite.Sprite):
     def __init__(self, width, height, color1, color2, color3, health, y, x):
@@ -204,31 +237,91 @@ class Bullet():
         for obj in objects:
             if self.rect.colliderect(obj.rect):
                 obj.hp -= self.damage
+                # try: except:
                 bullets.remove(self)
                 if obj.hp <= 0:
                     objects.remove(obj)
+                break
 
 
-Enemy_create = Enemy(maintank, 600, 600, 'up', speed, 10, damage)
+
 maintank_create = Player1(maintank, 10, 0, 'up', speed, 10, damage)
 objects = []
 bullets = []
-for _ in range(50):
-    while True:
-        x = randint(0, win_width // tile - 1) * tile
-        y = randint(0, win_height // tile - 1) * tile
-        rect = pygame.Rect(x, y, tile, tile)
-        fined = False
-        for obj in objects:
-            if rect.colliderect(obj.rect):
-                fined = True
-            elif rect.colliderect(maintank_create.rect):
-                fined = True
-            elif rect.colliderect(Enemy_create.rect):
-                fined = True
-        if not fined:
-            break
-    Block(x, y, tile, 1)
+enemies = []
+
+world_data = [
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+]
+
+world_data2 = [
+    [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0],
+    [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+    [0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0],
+    [0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 2, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0],
+]
+x = 0
+y = 0
+
+for i in world_data:
+    for j in i:
+        if j == 1:
+            Block(x, y, tile, 1)
+        if j == 2:
+            Enemy_create = Enemy(maintank, x, y, 'up', speed, 10, damage)
+            enemies.append(Enemy_create)
+        # elif j == 2:
+        #     s = Sprite(x, y, 50, 50, ship_img)
+        #     ships.append(s)
+        x += 50
+
+    y += 50
+    x = 0
+tanks = [maintank_create]
+
+# for _ in range(50):
+#     while True:
+#         x = randint(0, win_width // tile - 1) * tile
+#         y = randint(0, win_height // tile - 1) * tile
+#         rect = pygame.Rect(x, y, tile, tile)
+#         fined = False
+#         for obj in objects:
+#             if rect.colliderect(obj.rect):
+#                 fined = True
+#             elif rect.colliderect(maintank_create.rect):
+#                 fined = True
+#             elif rect.colliderect(Enemy_create.rect):
+#                 fined = True
+#         if not fined:
+#             break
+#     Block(x, y, tile, 1)
 
 game = True
 while game:
@@ -239,15 +332,21 @@ while game:
         bullet.update()
         bullet.draw()
         bullet.collide_list(objects)
-    Enemy_create.reset()
-    Enemy_create.update()
-    Enemy_create.move()
+        bullet.collide_list(enemies)
+        bullet.collide_list(tanks)
+    for enemy in enemies:
+        enemy.reset()
+        # enemy.update()
+        enemy.move()
     maintank_create.reset()
     maintank_create.update()
+    if maintank_create.hp <=0:
+        game = False
     for e in pygame.event.get():
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_SPACE:
                 maintank_create.shot()
+
                 # print('Bullet has been arrived:', bullets)
         if e.type == pygame.QUIT:
             game = False
